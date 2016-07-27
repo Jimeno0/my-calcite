@@ -4,16 +4,16 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-  <meta name="description" content="Calcite Maps - ArcGIS 4.x SDK Sample">
+  <meta name="description" content="Calcite and Cedar - Crime in Washington D.C. map">
   <link rel="icon" href="http://www.esri.com/favicon.ico">
-  <title>Calcite Maps - ArcGIS JS 4.0 Example</title>
+  <title>Calcite and Cedar map example - Crime in Washington D.C.</title>
 
   <!-- Calcite Bootstrap -->
-  <link rel="stylesheet" href="/dist/css/calcite-bootstrap.min-v0.2.css">
+  <link rel="stylesheet" href="dist/css/calcite-bootstrap.min-v0.2.css">
   <!-- <link rel="stylesheet" href="//esri.github.com/calcite-maps/dist/css/calcite-bootstrap.min-v0.2.css"> -->
 
   <!-- Calcite Maps -->
-  <link rel="stylesheet" href="/dist/css/calcite-maps-arcgis-4.x.min-v0.2.css">
+  <link rel="stylesheet" href="dist/css/calcite-maps-arcgis-4.x.min-v0.2.css">
   <!-- <link rel="stylesheet" href="//esri.github.com/calcite-maps/dist/css/calcite-maps-arcgis-4.x.min-v0.2.css"> -->
 
   <!-- cedar -->
@@ -85,7 +85,6 @@
             <div id="cedarCurrentDiv"></div>
             <p>Crime shift</p>
             <div id="cedarDayNightDiv"></div>
-            <p>Learn more about building custom<a href="http://github.com/esri/calcite-maps"> Calcite Maps apps here</a>.</p>
           </div>
         </div>
     </div>
@@ -104,18 +103,18 @@
       packages: [{
         name: "bootstrap",
         // location: location.pathname.replace(/\/[^/]+$/, "") + "./../../dist/vendor/dojo-bootstrap"
-        location: "http://esri.github.com/calcite-maps/dist/vendor/dojo-bootstrap"
+        location: "//esri.github.com/calcite-maps/dist/vendor/dojo-bootstrap"
       },
       {
         name: "calcite-maps",
         // location: location.pathname.replace(/\/[^/]+$/, "") + "./../../dist/js/dojo"
-        location: "http://esri.github.com/calcite-maps/dist/js/dojo"
+        location: "//esri.github.com/calcite-maps/dist/js/dojo"
       }]
     };
   </script>
 
   <!-- ArcGIS JS 4.0 -->
-  <script src="https://js.arcgis.com/4.0/"></script>
+  <script src="//js.arcgis.com/4.0/"></script>
 
   <script>
   var map;
