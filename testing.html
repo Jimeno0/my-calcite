@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <meta name="description" content="Calcite Maps - ArcGIS 4.x SDK Sample">
+  <link rel="icon" href="http://www.esri.com/favicon.ico">
+  <title>Calcite Maps - ArcGIS JS 4.0 Example</title>
+
+  <!-- Calcite Bootstrap -->
+  <!--link rel="stylesheet" href="../../dist/css/calcite-bootstrap.min-v0.2.css"-->
+  <link rel="stylesheet" href="http://esri.github.com/calcite-maps/dist/css/calcite-bootstrap.min-v0.2.css">
+
+  <!-- Calcite Maps -->
+  <!--link rel="stylesheet" href="../../dist/css/calcite-maps-arcgis-4.x.min-v0.2.css"-->
+  <link rel="stylesheet" href="http://esri.github.com/calcite-maps/dist/css/calcite-maps-arcgis-4.x.min-v0.2.css">
+
+  <!-- cedar -->
+  <script type="text/javascript" src="//esri.github.io/cedar/js/d3.min.js"></script>
+  <script type="text/javascript" src="//esri.github.io/cedar/js/vega.js"></script>
+  <script type="text/javascript" src="//esri.github.io/cedar/js/cedar.js"></script>
+  <!-- ArcGIS JS 4.0 -->
+  <link rel="stylesheet" href="https://js.arcgis.com/4.0/esri/css/main.css">
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+    .esri-legend {
+      overflow: hidden;
+    }
+  </style>
+
+</head>
+
+<body class="calcite-maps calcite-nav-top">
+
+  <!-- Navbar -->
+
+  <nav class="navbar calcite-navbar navbar-fixed-top calcite-text-light calcite-bg-dark calcite-bgcolor-dark-blue">
+
+    <!-- Show/hide navbar (esri icon)-->
+    <div class="navbar-header">
+      <a class="navbar-brand" role="button" id="calciteToggleNavbar" aria-haspopup="true">
+        <span class="esri-icon esri-icon-map-pin"></span>
+      </a>
+    </div>
+
+    <!-- Title -->
+    <div class="calcite-title calcite-overflow-hidden">
+      <span class="calcite-title-main">Crime in Washington</span>
+      <span class="calcite-title-divider hidden-xs"></span>
+      <span class="calcite-title-sub hidden-xs">Trying to do cool cedar graphics</span> 
+    </div>
+
+    </ul>
+    <ul class="calcite-nav nav navbar-nav">                    
+      <li><a role="button" data-target="#panelInfo" data-toggle="collapse" aria-expanded="true"><span class="glyphicon glyphicon-stats
+"></span></a></li>
+
+    </ul>
+
+  </nav><!--/.navbar -->
+
+<!-- panel -->
+  <div class="calcite-panels calcite-panels-right calcite-bg-custom calcite-text-light calcite-bgcolor-dark-blue panel-group" role="tablist" aria-multiselectable="true">
+
+    <div id="panelInfo" class="panel collapse">
+        <div id="headingInfo" class="panel-heading" role="tab">
+          <div class="panel-title">
+            <a class="panel-toggle" role="button" data-toggle="collapse" href="#collapseInfo" aria-expanded="true" aria-controls="collapseInfo"><span class="glyphicon glyphicon-stats" aria-hidden="true"></span><span class="panel-label">Graphics</span></a>
+            <a class="panel-close" role="button" data-toggle="collapse" data-target="#panelInfo"><span class="esri-icon esri-icon-close" aria-hidden="true"></span></a>  
+          </div>
+        </div>
+        <!-- by removing collapse class down here the panel doesnt shows collapsed on ckick in the navbar button -->
+        <div id="collapseInfo" class="panel-collapse" role="tabpanel" aria-labelledby="headingInfo">
+          <div class="panel-body">
+            <span class="esri-icon esri-icon-map-pin pull-left"></span><h3>Cedar Graphics</h3>
+            <p>Overall crimes in Washington D.C. 2016</p>
+            <div id="cedarOverallDiv"></div>
+            <p>Crimes in the current extent</p>
+            <div id="cedarCurrentDiv"></div>
+            <p>Crime shift</p>
+            <div id="cedarDayNightDiv"></div>
+            <p>Learn more about building custom<a href="http://github.com/esri/calcite-maps"> Calcite Maps apps here</a>.</p>
+          </div>
+        </div>
+    </div>
+
+  </div><!--/.panel -->
+
+
+  <!-- Map Container  -->
+
+  <div class="calcite-map calcite-map-absolute">
+    <div id="mapViewDiv"></div>
+  </div><!-- /.container -->
+
+  <script type="text/javascript">
+    var dojoConfig = {
+      packages: [{
+        name: "bootstrap",
+        // location: location.pathname.replace(/\/[^/]+$/, "") + "./../../dist/vendor/dojo-bootstrap"
+        location: "http://esri.github.com/calcite-maps/dist/vendor/dojo-bootstrap"
+      },
+      {
+        name: "calcite-maps",
+        // location: location.pathname.replace(/\/[^/]+$/, "") + "./../../dist/js/dojo"
+        location: "http://esri.github.com/calcite-maps/dist/js/dojo"
+      }]
+    };
+  </script>
+
+  <!-- ArcGIS JS 4.0 -->
+  <script src="https://js.arcgis.com/4.0/"></script>
+
+  <script>
+  var map;
+
+    require([
+      // ArcGIS JS
+      "esri/Map",
+      "esri/views/MapView",
+      "esri/layers/FeatureLayer",
+      "esri/symbols/PictureMarkerSymbol",
+      "esri/renderers/SimpleRenderer",
+      "esri/symbols/SimpleMarkerSymbol",
+      // Bootstrap
+      "bootstrap/Collapse", 
+      "bootstrap/Modal",
+      // Calcite-maps
+      "calcite-maps/calcitemaps-v0.2",
+      "dojo/domReady!"
+    ], function(Map,MapView,FeatureLayer,PictureMarkerSymbol,SimpleRenderer,SimpleMarkerSymbol) {
+
+      var crimeUrl = "https://services7.arcgis.com/CIHXTZ43xoljCUmU/arcgis/rest/services/Crime_Incidents__2016/FeatureServer/0";
+      //Symbol & render
+      var symbol = new SimpleMarkerSymbol({
+        style: "circle",
+        color: [ 35, 113, 187,0.5 ],
+        size: "9px",
+        outline: {
+          color: [ 35, 113, 187,0.9 ],
+          width: 1
+        }
+      });
+
+      var renderer = new SimpleRenderer({
+        symbol: symbol
+      });
+      // Map
+      map = new Map({
+        basemap: "gray"
+      });
+      // View
+      var view = new MapView({
+        map: map,
+        container: "mapViewDiv",
+        center:[-77.021444, 38.888577],
+        zoom: 14,
+        padding: {
+            top: 50
+          }
+      });
+      //Feature Lyr
+      var featureLayer = new FeatureLayer({
+        url: crimeUrl,
+        renderer: renderer,
+        minScale:2000000
+      });
+      map.add(featureLayer);
+
+
+
+      //*******************
+      //*                 *
+      //*     CEDAR       *
+      //*                 *
+      //*******************
+
+      //Cedar graphics fields and popup params
+      var xField = "OFFENSE",
+        toolTip = "{OFFENSE}";
+      
+      //Cedar BAR charts:
+
+      function setDataset(url,field ){
+        return {
+          "url":url,
+          "query": {
+            "groupByFieldsForStatistics": field,
+            "outStatistics": [{
+              "statisticType": "count", 
+              "onStatisticField": field, 
+              "outStatisticFieldName": "Number_of_sum"
+            }]
+          },
+          "mappings":{
+            "x": {"field":field,"label":""},
+            "y": {"field":"Number_of_sum","label":""}
+          }
+        };
+      }
+
+    function setTooltip (tooltipField){
+      return {
+          "id": "tooltip-url",
+          "title":"Offense",
+          "content":tooltipField + ": " + "{Number_of_sum}"
+        };  
+    }
+
+
+
+      var overallChart = new Cedar({
+        "type": "bar",
+        "dataset": setDataset(crimeUrl, xField),
+        "tooltip": setTooltip(toolTip)
+      });
+
+      var dinamicChart = new Cedar({
+        "type": "bar",
+        "dataset": setDataset(crimeUrl, xField),
+        "tooltip": setTooltip(toolTip)
+      });
+
+
+
+      //Showing overallChart
+      overallChart.show({
+        elementId: "#cedarOverallDiv",
+        height: 300,
+        width: 300,
+        autolabels: false
+      });
+
+      dinamicChart.show({
+        elementId: "#cedarCurrentDiv",
+        height: 300,
+        width: 300,
+        autolabels: false
+      });
+
+    //Cedar PIE charts:
+
+
+     var datasetPie = {
+        "url":crimeUrl,
+          "query": {
+            "groupByFieldsForStatistics": "SHIFT",
+            "outStatistics": [{
+              "statisticType": "count", 
+              "onStatisticField": "SHIFT", 
+              "outStatisticFieldName": "Number_of_sum"
+            }]
+          },    
+          "mappings":{
+            "label": {"field":"SHIFT","label":"County"},
+            "y": {"field":"Number_of_sum","label":"People"},
+            "radius": 100
+          }
+        };
+
+
+      var pieChart = new Cedar({
+        "type": "pie",
+        "dataset": datasetPie
+      });
+
+      pieChart.show({
+        elementId: "#cedarDayNightDiv",
+        width: 300,
+        height: 300
+      });
+      
+
+      view.watch('extent',function(evt){
+
+        dinamicChart.dataset.query.geometry = evt.extent;
+        dinamicChart.update();
+
+        pieChart.dataset.query.geometry = evt.extent;
+        pieChart.update();
+
+
+      });
+
+
+
+    });
+  </script>
+
+</body>
+</html>
