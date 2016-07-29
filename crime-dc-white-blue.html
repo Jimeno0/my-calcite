@@ -58,7 +58,7 @@
 
     <!-- Title -->
     <div class="calcite-title calcite-overflow-hidden">
-      <span class="calcite-title-main">Crime in Washington</span>
+      <span class="calcite-title-main">Crime in Washington D.C. 2016</span>
       <span class="calcite-title-divider hidden-xs"></span>
       <span class="calcite-title-sub hidden-xs">Cool graphics by <a href="https://github.com/Jimeno0/"> Jimeno0</a></span> 
     </div>
@@ -80,19 +80,19 @@
     <div id="panelInfo" class="panel collapse">
         <div id="headingInfo" class="panel-heading" role="tab">
           <div class="panel-title">
-            <a class="panel-toggle" role="button" data-toggle="collapse" href="#collapseInfo" aria-expanded="true" aria-controls="collapseInfo"><span class="glyphicon glyphicon-stats" aria-hidden="true"></span><span class="panel-label">Graphics</span></a>
+            <a class="panel-toggle" role="button" data-toggle="collapse" href="#collapseInfo" aria-expanded="true" aria-controls="collapseInfo"><span class="glyphicon glyphicon-stats" aria-hidden="true"></span><span class="panel-label">Graphics in current extent</span></a>
             <a class="panel-close" role="button" data-toggle="collapse" data-target="#panelInfo"><span class="esri-icon esri-icon-close" aria-hidden="true"></span></a>  
           </div>
         </div>
         <!-- by removing collapse class down here the panel doesnt shows collapsed on ckick in the navbar button -->
         <div id="collapseInfo" class="panel-collapse" role="tabpanel" aria-labelledby="headingInfo">
           <div class="panel-body">
-            <span class="esri-icon esri-icon-map-pin pull-left"></span><h3>Overall crimes in Washington D.C. 2016</h3>
-            <div id="cedarOverallDiv"></div>
-            <span class="esri-icon esri-icon-map-pin pull-left"></span><h3>Crimes in the current extent</h3>
+            <span class="esri-icon esri-icon-map-pin pull-left"></span><h3>Crime types</h3>
             <div id="cedarCurrentDiv"></div>
             <span class="esri-icon esri-icon-map-pin pull-left"></span><h3>Crime shift</h3>
             <div id="cedarDayNightDiv"></div>
+            <span class="esri-icon esri-icon-map-pin pull-left"></span><h3>Timeline crimes</h3>
+            <div id="cedarTimeLineDiv"></div>
           </div>
         </div>
     </div>
@@ -163,7 +163,7 @@
       });
       // Map
       map = new Map({
-        basemap: "gray"
+        basemap: "dark-gray"
       });
       // View
       var view = new MapView({
@@ -175,16 +175,11 @@
             top: 50
           }
       });
-      //Feature Lyr
+      //Tiled Lyr
       var tiledLayer = new TileLayer({
         url: tiledUrl
       });
 
-      // var featureLayer = new FeatureLayer({
-      //   url: crimeUrl,
-      //   renderer: renderer,
-      //   minScale:2000000
-      // });
       map.add(tiledLayer);
 
 
@@ -196,7 +191,8 @@
       //*******************
 
       //Cedar graphics fields and popup params
-      var xField = "OFFENSE",
+      var offenseField = "OFFENSE",
+        timeField = "REPORTDATE",
         toolTip = "{OFFENSE}";
       
       //Cedar BAR charts:
@@ -219,41 +215,64 @@
         };
       }
 
-    function setTooltip (tooltipField){
-      return {
-          "id": "tooltip-url",
-          "title":"Offense",
-          "content":tooltipField + ": " + "{Number_of_sum}"
-        };  
-    }
+      function setTooltip (tooltipField){
+        return {
+            "title":"Offense",
+            "content":tooltipField + ": " + "{Number_of_sum}"
+          };  
+      }
 
-      var overallChart = new Cedar({
-        "type": "bar",
-        "dataset": setDataset(crimeUrl, xField),
-        "tooltip": setTooltip(toolTip)
+    
+    
+      var timeDataset = {
+         "url":crimeUrl,
+         "query": {
+            "groupByFieldsForStatistics": "REPORTDATE",
+            "outStatistics": [{
+              "statisticType": "count", 
+              "onStatisticField": "REPORTDATE", 
+              "outStatisticFieldName": "Number_of_sum"
+            }]
+          },
+         "mappings":{
+           "time": {"field":timeField},
+           "value": {"field":"Number_of_sum"},
+           "sort":timeField
+        }
+      };
+
+      var timeTooltip = {
+        "title": "Crimes",
+        "content": "{Number_of_sum}"
+      };
+
+
+      var timeChart = new Cedar({
+        "type":"time",
+        "dataset": timeDataset ,
+        "tooltip": timeTooltip
       });
 
       var dinamicChart = new Cedar({
         "type": "bar",
-        "dataset": setDataset(crimeUrl, xField),
+        "dataset": setDataset(crimeUrl, offenseField),
         "tooltip": setTooltip(toolTip)
       });
 
+      //Showing Charts
 
-
-      //Showing overallChart
-      overallChart.show({
-        elementId: "#cedarOverallDiv",
-        height: 300,
-        width: 300,
-        autolabels: false
-      });
 
       dinamicChart.show({
         elementId: "#cedarCurrentDiv",
         height: 300,
         width: 300,
         autolabels: false
+      });
+
+      timeChart.show({
+        elementId: "#cedarTimeLineDiv",
+        height: 300,
+          width: 300
       });
     //Cedar PIE charts:
 
@@ -296,6 +315,9 @@
         pieChart.dataset.query.geometry = evt.extent;
         pieChart.update();
 
+        timeChart.dataset.query.geometry = evt.extent;
+        timeChart.update();
+        
       });
 
     });
