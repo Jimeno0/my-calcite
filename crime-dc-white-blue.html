@@ -32,6 +32,12 @@
     .esri-legend {
       overflow: hidden;
     }
+
+    @media (min-height: 544px){
+      .calcite-panels .panel-body {
+        max-height: 490px;
+      }
+    }
   </style>
 
 </head>
@@ -81,12 +87,11 @@
         <!-- by removing collapse class down here the panel doesnt shows collapsed on ckick in the navbar button -->
         <div id="collapseInfo" class="panel-collapse" role="tabpanel" aria-labelledby="headingInfo">
           <div class="panel-body">
-            <span class="esri-icon esri-icon-map-pin pull-left"></span><h3>Cedar Graphics</h3>
-            <p>Overall crimes in Washington D.C. 2016</p>
+            <span class="esri-icon esri-icon-map-pin pull-left"></span><h3>Overall crimes in Washington D.C. 2016</h3>
             <div id="cedarOverallDiv"></div>
-            <p>Crimes in the current extent</p>
+            <span class="esri-icon esri-icon-map-pin pull-left"></span><h3>Crimes in the current extent</h3>
             <div id="cedarCurrentDiv"></div>
-            <p>Crime shift</p>
+            <span class="esri-icon esri-icon-map-pin pull-left"></span><h3>Crime shift</h3>
             <div id="cedarDayNightDiv"></div>
           </div>
         </div>
@@ -127,7 +132,7 @@
       // ArcGIS JS
       "esri/Map",
       "esri/views/MapView",
-      "esri/layers/FeatureLayer",
+      "esri/layers/TileLayer",
       "esri/symbols/PictureMarkerSymbol",
       "esri/renderers/SimpleRenderer",
       "esri/symbols/SimpleMarkerSymbol",
@@ -137,9 +142,11 @@
       // Calcite-maps
       "calcite-maps/calcitemaps-v0.2",
       "dojo/domReady!"
-    ], function(Map,MapView,FeatureLayer,PictureMarkerSymbol,SimpleRenderer,SimpleMarkerSymbol) {
+    ], function(Map,MapView,TileLayer,PictureMarkerSymbol,SimpleRenderer,SimpleMarkerSymbol) {
 
       var crimeUrl = "https://services7.arcgis.com/CIHXTZ43xoljCUmU/arcgis/rest/services/Crime_Incidents__2016/FeatureServer/0";
+      var tiledUrl = "https://tiles.arcgis.com/tiles/CIHXTZ43xoljCUmU/arcgis/rest/services/CrimeDC2016/MapServer";
+
       //Symbol & render
       var symbol = new SimpleMarkerSymbol({
         style: "circle",
@@ -169,12 +176,16 @@
           }
       });
       //Feature Lyr
-      var featureLayer = new FeatureLayer({
-        url: crimeUrl,
-        renderer: renderer,
-        minScale:2000000
+      var tiledLayer = new TileLayer({
+        url: tiledUrl
       });
-      map.add(featureLayer);
+
+      // var featureLayer = new FeatureLayer({
+      //   url: crimeUrl,
+      //   renderer: renderer,
+      //   minScale:2000000
+      // });
+      map.add(tiledLayer);
 
 
 
